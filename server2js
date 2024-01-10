@@ -1,0 +1,108 @@
+const express = require('express');
+const { graphqlHTTP } = require('express-graphql');
+const { buildSchema } = require('graphql');
+
+const schema = buildSchema(`
+  type Record {
+    ID: String
+    contentName: String
+    contentDesc: String
+    contentType: String
+    contentSubType: String
+    myOwnField_s: String
+    _root_: String
+    logic: String
+  }
+
+  type AdvancedField {
+    fieldName: String
+    values: [FieldValue]
+  }
+
+  type FieldValue {
+    name: String
+    count: Int
+  }
+
+  type Query {
+    findByQuery(
+      start: Int,
+      rows: Int,
+      filterField: String,
+      filterQuery: String,
+      sort: String,
+      advanceField: [String],
+      advanceQuery: [String]
+    ): SearchResult
+  }
+
+  type SearchResult {
+    start: Int
+    row: Int
+    statusCode: Int
+    totalRecords: Int
+    records: [Record]
+    advanced: [AdvancedField]
+  }
+`);
+
+const root = {
+  findByQuery: ({ start, rows, filterField, filterQuery, sort, advanceField, advanceQuery }) => {
+    // Perform the necessary logic to fetch data based on the provided parameters
+    // For simplicity, let's assume you have some data available
+    const records = [
+      {
+        ID: '1',
+        contentName: 'ravi',
+        contentDesc: 'contentDesc',
+        contentType: 'TV',
+        contentSubType: 'LCD',
+        myOwnField_s: 'Hello world',
+        _root_: '1',
+        logic: 'ravi',
+      },
+      // Add more records as needed
+    ];
+
+    const advancedFields = [
+      {
+        fieldName: 'ID',
+        values: [{ name: '1', count: 1 }],
+      },
+      {
+        fieldName: 'contentId',
+        values: [],
+      },
+      {
+        fieldName: 'logic',
+        values: [{ name: 'ravi', count: 6 }],
+      },
+      // Add more advanced fields as needed
+    ];
+
+    return {
+      start,
+      row: rows,
+      statusCode: 200,
+      totalRecords: records.length,
+      records,
+      advanced: advancedFields,
+    };
+  },
+};
+
+const app = express();
+
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema,
+    rootValue: root,
+    graphiql: true,
+  })
+);
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}/graphql`);
+});
